@@ -50,7 +50,7 @@ app.get('/history', async (req, res) => {
 
     try {
         const result = await pool.query(
-            'SELECT date, smoked, count, urge_time as "urgeTime", feeling, reflection FROM check_ins WHERE user_id = $1 ORDER BY date DESC',
+            'SELECT TO_CHAR(date, \'YYYY-MM-DD\') as date, smoked, count, urge_time as "urgeTime", feeling, reflection FROM check_ins WHERE user_id = $1 ORDER BY date DESC',
             [user_id]
         );
         res.status(200).json(result.rows);
