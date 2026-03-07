@@ -1,9 +1,9 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Generated translations
+src/i18n/locales/*.json
+!src/i18n/locales/en.json
+
+# Translation generation artifacts
+scripts/tmp_translations
 pnpm-debug.log*
 lerna-debug.log*
 
