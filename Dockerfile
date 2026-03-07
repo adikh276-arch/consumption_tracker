@@ -7,6 +7,9 @@ RUN npm ci
 
 COPY . .
 
+# Generate translations since they are not committed to git
+RUN npx tsx scripts/generateTranslations.ts
+
 RUN npm run build
 
 FROM nginx:alpine
