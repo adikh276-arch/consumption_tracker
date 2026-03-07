@@ -24,7 +24,7 @@ COPY vite-nginx.conf /etc/nginx/conf.d/nginx.conf
 
 # Install dependencies needed for the server at runtime
 # We need node and npm/npx in the runtime image too
-RUN apk add --no-node-js --no-npm nodejs npm
+RUN apk add nodejs npm
 
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/server ./server
