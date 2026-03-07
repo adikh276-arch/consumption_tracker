@@ -52,20 +52,33 @@ const languages = [
 
 const SmokeCheck = () => {
   const { t, i18n } = useTranslation();
-  const hasAnyHistory = getHistory().length > 0;
-  const [screen, setScreen] = useState<Screen>(hasAnyHistory ? "history" : "start");
+  const [history, setHistory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [screen, setScreen] = useState<Screen>("start");
   const [smoked, setSmoked] = useState("");
   const [count, setCount] = useState("");
   const [urge, setUrge] = useState("");
   const [feeling, setFeeling] = useState("");
   const [step, setStep] = useState("");
 
+  useEffect(() => {
+    const fetchHistory = async () => {
+      const data = await getHistory();
+      setHistory(data);
+      if (data.length > 0) {
+        setScreen("history");
+      }
+      setLoading(false);
+    };
+    fetchHistory();
+  }, []);
+
   const go = (next: Screen, delay = 350) => {
     setTimeout(() => setScreen(next), delay);
   };
 
-  const saveAndFinish = (didSmoke: boolean) => {
-    saveCheckIn({
+  const saveAndFinish = async (didSmoke: boolean) => {
+    await saveCheckIn({
       date: getTodayKey(),
       smoked: didSmoke,
       ...(didSmoke && {
@@ -75,7 +88,20 @@ const SmokeCheck = () => {
         reflection: step || undefined,
       }),
     });
+    // Refresh history
+    const data = await getHistory();
+    setHistory(data);
   };
+
+  if (loading) {
+    return (
+      <div className="sc-gradient min-h-screen flex items-center justify-center p-6">
+        <div className="w-12 h-12 border-4 border-sc-midnight/10 border-t-sc-midnight rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  const hasAnyHistory = history.length > 0;
 
   const changeLanguage = (lang: string) => {
     i18n.changeLanguage(lang);

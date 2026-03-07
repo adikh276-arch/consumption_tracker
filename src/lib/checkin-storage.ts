@@ -7,28 +7,40 @@ export interface CheckInEntry {
   reflection?: string;
 }
 
-const STORAGE_KEY = "smoke-check-history";
+const API_BASE = "/consumption_tracker/api";
 
-export function getHistory(): CheckInEntry[] {
+export async function getHistory(): Promise<CheckInEntry[]> {
+  const userId = sessionStorage.getItem("user_id");
+  if (!userId) return [];
+
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
+    const res = await fetch(`${API_BASE}/history?user_id=${userId}`);
+    if (!res.ok) throw new Error("Failed to fetch history");
+    return await res.json();
+  } catch (err) {
+    console.error("Error getting history:", err);
     return [];
   }
 }
 
-export function saveCheckIn(entry: CheckInEntry): void {
-  const history = getHistory();
-  // Replace if same date exists
-  const idx = history.findIndex((e) => e.date === entry.date);
-  if (idx >= 0) history[idx] = entry;
-  else history.push(entry);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+export async function saveCheckIn(entry: CheckInEntry): Promise<void> {
+  const userId = sessionStorage.getItem("user_id");
+  if (!userId) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/save-checkin`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, entry }),
+    });
+    if (!res.ok) throw new Error("Failed to save check-in");
+  } catch (err) {
+    console.error("Error saving check-in:", err);
+  }
 }
 
-export function getWeekHistory(): (CheckInEntry | null)[] {
-  const history = getHistory();
+export async function getWeekHistory(): Promise<(CheckInEntry | null)[]> {
+  const history = await getHistory();
   const result: (CheckInEntry | null)[] = [];
   const today = new Date();
 
@@ -62,4 +74,16 @@ export function getWeekDates(): { key: string; label: string; dayName: string }[
   }
 
   return result;
+}
+
+export async function initUser(userId: string): Promise<void> {
+  try {
+    await fetch(`${API_BASE}/init-user`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId }),
+    });
+  } catch (err) {
+    console.error("Error initializing user:", err);
+  }
 }

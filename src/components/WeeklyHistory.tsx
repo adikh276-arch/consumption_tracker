@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { CheckInEntry, getWeekDates, getWeekHistory } from "@/lib/checkin-storage";
@@ -9,8 +10,26 @@ interface WeeklyHistoryProps {
 
 const WeeklyHistory = ({ onClose }: WeeklyHistoryProps) => {
   const { t } = useTranslation();
+  const [history, setHistory] = useState<(CheckInEntry | null)[]>([]);
+  const [loading, setLoading] = useState(true);
   const dates = getWeekDates();
-  const history = getWeekHistory();
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      const data = await getWeekHistory();
+      setHistory(data);
+      setLoading(false);
+    };
+    fetchHistory();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12">
+        <div className="w-8 h-8 border-4 border-sc-midnight/10 border-t-sc-midnight rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   const smokeFreeCount = history.filter((e) => e !== null && !e.smoked).length;
   const smokedCount = history.filter((e) => e !== null && e.smoked).length;
